@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>My first three.js app</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100%; background-color: white; }
+		</style>
+	</head>
+	<body>
+		<script src="js/three.js"></script>
+		<script>
+
+			container = document.createElement( 'div' );
+			document.body.appendChild( container );
+
+			var info = document.createElement( 'div' );
+			info.style.position = 'absolute';
+			info.style.top = '10px';
+			info.style.width = '100%';
+			info.style.textAlign = 'center';
+			info.innerHTML = 'Drag to spin the cube';
+			container.appendChild( info );
+
+			var scene = new THREE.Scene();
+			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+			var renderer = new THREE.WebGLRenderer();
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			renderer.setClearColor (0xffffff, 1);
+			document.body.appendChild( renderer.domElement );
+
+			var geometry = new THREE.BoxGeometry( 3, 3, 3 );
+			//var material = new THREE.MeshBasicMaterial( { color: 0xe0e0e0 } );
+			var material = new THREE.MeshFaceMaterial([
+			    new THREE.MeshBasicMaterial({
+			        color: 0x005445
+			    }),
+			    new THREE.MeshBasicMaterial({
+			        color: 0x953734
+			    }),
+			    new THREE.MeshBasicMaterial({
+			        color: 0x366092,
+			    }),
+			    new THREE.MeshBasicMaterial({
+			        color: 0xf79646
+			    }),
+			    new THREE.MeshBasicMaterial({
+			        color: 0x318598
+			    }),
+			    new THREE.MeshBasicMaterial({
+			        color: 0x938953
+			    })
+			]);
+			var cube = new THREE.Mesh( geometry, material );
+
+			
+
+			scene.add( cube );
+
+			camera.position.z = 5;
+
+			var previousMousePosition = {
+			    x: 0,
+			    y: 0
+			};
+
+			document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+
+
+			function onDocumentMouseDown( event ) {
+
+				event.preventDefault();
+
+				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+				document.addEventListener( 'mouseup', onDocumentMouseUp, false );
+				//document.addEventListener( 'mouseout', onDocumentMouseOut, false );
+
+				// mouseXOnMouseDown = event.clientX - windowHalfX;
+				// targetRotationOnMouseDown = targetRotation;
+
+			}
+
+			function onDocumentMouseUp( event ) {
+
+				document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
+				document.removeEventListener( 'mouseup', onDocumentMouseUp, false );
+				//document.removeEventListener( 'mouseout', onDocumentMouseOut, false );
+
+			}
+
+			function onDocumentMouseMove( event ) {
+				var deltaMove = {
+			        x: event.offsetX-previousMousePosition.x,
+			        y: event.offsetY-previousMousePosition.y
+			    };
+
+			            
+		        var deltaRotationQuaternion = new THREE.Quaternion()
+		            .setFromEuler(new THREE.Euler(
+		                toRadians(deltaMove.y * 1),
+		                toRadians(deltaMove.x * 1),
+		                0,
+		                'XYZ'
+		            ));
+		        
+		        cube.quaternion.multiplyQuaternions(deltaRotationQuaternion, cube.quaternion);
+			    
+			    
+			    previousMousePosition = {
+			        x: event.offsetX,
+			        y: event.offsetY
+			    };
+
+			}
+			
+			function toRadians(angle) {
+				return angle * (Math.PI / 180);
+			}
+
+			function render() {
+				requestAnimationFrame( render );
+				// cube.rotation.x += 0.5;
+				// cube.rotation.y += 0.1;
+				renderer.render( scene, camera );
+			}
+			render();
+
+		</script>
+	</body>
+</html>
