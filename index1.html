@@ -39,6 +39,8 @@
 
 			var text = "What is Lorem Ipsum Lorem Ipsum is simply dummy text <a> link <a/>of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic "
 
+			var btnText = "Click";
+
 			dynamicTexture.clear('cyan');
 			//.drawText(text, 32, 256, 'red')
 			dynamicTexture.drawTextCooked({
@@ -46,6 +48,20 @@
 				font	    : "bolder 12px Verdana"
 			});
 			///////////////////////////////////////
+
+			// dynamic text as metirial////////////
+			var dynamicTexture1	= new THREEx.DynamicTexture(512,512)
+			dynamicTexture1.context.font	= "bolder 2px Verdana";
+			dynamicTexture1.texture.anisotropy = renderer.getMaxAnisotropy()
+
+			var btnText = "Click";
+
+			dynamicTexture1.clear('cyan');
+			//.drawText(text, 32, 256, 'red')
+			dynamicTexture1.drawTextCooked({
+				text		: btnText,
+				font	    : "125px Verdana"
+			});
 
 			var geometry = new THREE.BoxGeometry( 4, 4, 4 );
 
@@ -86,17 +102,22 @@
 			        color: 0xCCAFA9
 			    }),
 			    new THREE.MeshBasicMaterial({
-			        color: 0x953734
+			    	//map	: dynamicTexture1.texture
+			    	map: THREE.ImageUtils.loadTexture( 'image/click.png' )
+			        
 			    }),
 			    new THREE.MeshBasicMaterial({
-					map	: dynamicTexture.texture
+					color: 0x953734
 				})
 			]);
 
 
 			var cube = new THREE.Mesh( geometry, material );
+			cube.name = "cube";
 
 			var btn = new THREE.Mesh( geometry1, material2 );
+			btn.name = "button";
+
 			btn.position.set (-1,-1.3,1.6)
 			cube.add(btn);
 
@@ -112,6 +133,9 @@
 			    x: 0,
 			    y: 0
 			};
+
+			var raycaster = new THREE.Raycaster();
+			var mouse = new THREE.Vector2();
 
 			
 
@@ -162,6 +186,9 @@
 			        y: event.offsetY
 			    };
 
+			    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
 			}
 			
 			function toRadians(angle) {
@@ -170,6 +197,22 @@
 
 			function render() {
 				requestAnimationFrame( render );
+
+				// update the picking ray with the camera and mouse position
+				raycaster.setFromCamera( mouse, camera );
+
+				// calculate objects intersecting the picking ray
+				var intersects = raycaster.intersectObjects( scene.children[0].children );
+
+				for ( var i = 0; i < intersects.length; i++ ) {
+
+					//intersects[ i ].object.material.color.set( 0xff0000 );
+					// console.log("name-->"+intersects[ i ].object.children);
+					if(intersects[ i ].object.name == "button"){
+						window.open("https://www.w3schools.com","_self");
+					}
+
+				}
 				// cube.rotation.x += 0.0125;
 				// cube.rotation.y += 0.0125;
 				renderer.render( scene, camera );
