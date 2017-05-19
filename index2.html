@@ -146,40 +146,47 @@
 				document.addEventListener( 'mouseout', onDocumentMouseOut, false );
 
 				mouseXOnMouseDown = event.clientX - windowHalfX;
+				mouseYOnMouseDown = event.clientY - windowHalfY;
 				targetRotationOnMouseDown = targetRotation;
 
 			}
 
 			function onDocumentMouseMove( event ) {
 
-				// mouseX = event.clientX - windowHalfX;
+				mouseX = event.clientX - windowHalfX;
 
-				// targetRotation = targetRotationOnMouseDown + ( mouseX - mouseXOnMouseDown ) * 0.02;
+				targetRotation = targetRotationOnMouseDown + ( mouseX - mouseXOnMouseDown ) * 0.02;
+				cube.rotation.y = targetRotation;
 
-				// mouseY = event.clientY - windowHalfY;
+				mouseY = event.clientY - windowHalfY;
 
-				// targetRotation = targetRotationOnMouseDown + ( mouseY - mouseYOnMouseDown ) * 0.02;
-				var deltaMove = {
-			        x: event.offsetX-previousMousePosition.x,
-			        y: event.offsetY-previousMousePosition.y
-			    };
+				targetRotation = targetRotationOnMouseDown + ( mouseY - mouseYOnMouseDown ) * 0.02;
+
+				cube.rotation.x = targetRotation;
+
+				//cube.rotation.y += ( targetRotation - cube.rotation.y ) * 0.05;
+				//cube.rotation.x += ( targetRotation - cube.rotation.x ) * 0.05;
+				// var deltaMove = {
+			 //        x: event.offsetX-previousMousePosition.x,
+			 //        y: event.offsetY-previousMousePosition.y
+			 //    };
 
 			            
-		        var deltaRotationQuaternion = new THREE.Quaternion()
-		            .setFromEuler(new THREE.Euler(
-		                toRadians(deltaMove.y * 1),
-		                toRadians(deltaMove.x * 1),
-		                0,
-		                'XYZ'
-		            ));
+		  //       var deltaRotationQuaternion = new THREE.Quaternion()
+		  //           .setFromEuler(new THREE.Euler(
+		  //               toRadians(deltaMove.y * 1),
+		  //               toRadians(deltaMove.x * 1),
+		  //               0,
+		  //               'XYZ'
+		  //           ));
 		        
-		        cube.quaternion.multiplyQuaternions(deltaRotationQuaternion, cube.quaternion);
+		  //       cube.quaternion.multiplyQuaternions(deltaRotationQuaternion, cube.quaternion);
 			    
 			    
-			    previousMousePosition = {
-			        x: event.offsetX,
-			        y: event.offsetY
-			    };
+			 //    previousMousePosition = {
+			 //        x: event.offsetX,
+			 //        y: event.offsetY
+			 //    };
 
 			}
 
@@ -242,7 +249,8 @@
 				// cube.rotation.x += 0.025;
 				// cube.rotation.y += 0.025;
 
-				plane.rotation.y = cube.rotation.y += ( targetRotation - cube.rotation.y ) * 0.05;
+				// plane.rotation.y = cube.rotation.y += ( targetRotation - cube.rotation.y ) * 0.05;
+				// plane.rotation.x = cube.rotation.x += ( targetRotation - cube.rotation.x ) * 0.05;
 				renderer.render( scene, camera );
 
 			}
