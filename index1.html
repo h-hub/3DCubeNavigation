@@ -37,6 +37,7 @@
 		<script src="js/bootstrap.js"></script>
 		<script src="js/three.js"></script>
 		<script src="js/threex.dynamictexture.js"></script>
+		<script src="js/renderers/Projector.js"></script>
 
 
 		<script>
@@ -45,7 +46,7 @@
 			document.body.appendChild( container );
 
 			var scene = new THREE.Scene();
-			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+			var camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
 
 			var renderer = new THREE.WebGLRenderer();
 			renderer.setSize( window.innerWidth, window.innerHeight );
@@ -103,7 +104,7 @@
 				font	    : "125px Verdana"
 			});
 
-			var geometryBtn = new THREE.BoxGeometry( 0.7, 0.3, 1 );
+			var geometryBtn = new THREE.BoxGeometry( 10, 10, 10 );
 			
 
 			var materialBtn = new THREE.MeshFaceMaterial([
@@ -130,12 +131,14 @@
 			var btn = new THREE.Mesh( geometryBtn, materialBtn );
 			btn.name = "button";
 
-			btn.position.set (-1,-1.3,1.6)
-			cube.add(btn);
+			//btn.position.set (-1,-2,1.6)
+			//cube.add(btn);
 
-			scene.add( cube );
+			//scene.add( cube );
 
-			camera.position.z = 8;
+			scene.add( btn );
+
+			camera.position.z = 300;
 
 			var raycaster = new THREE.Raycaster();
 			var mouse = new THREE.Vector2();
@@ -145,6 +148,20 @@
 
         	var windowHalfX = window.innerWidth / 2;
 			var windowHalfY = window.innerHeight / 2;
+
+			var projector = new THREE.Projector();
+
+			var objects = [];
+			objects.push(btn);
+
+			//mouse event variables
+			var projector = new THREE.Projector(), 
+			    mouse_vector = new THREE.Vector3(),
+			    mouse = { x: 0, y: 0, z: 1 },
+			    ray = new THREE.Raycaster( new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0) ),
+			    intersects = [];
+
+			console.log(objects);
 
 			document.addEventListener( 'mousedown', onDocumentMouseDown, false );
 
@@ -157,9 +174,53 @@
 				mouseX = event.clientX;
         		mouseY = event.clientY;
 
-        		console.log(cube.rotation.x);
-        		console.log(cube.rotation.y);
-        		console.log(cube.rotation.z);
+        		// console.log(cube.rotation.x);
+        		// console.log(cube.rotation.y);
+        		// console.log(cube.rotation.z);
+
+       //  		var vector = new THREE.Vector3((event.clientX / window.innerWidth) * 2 -
+			    //     1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5);
+			    // projector.unprojectVector(vector, camera);
+			    // var raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position)
+			    //     .normalize());
+			    // var intersects = raycaster.intersectObjects(scene.children[0].children);
+			    // if (intersects.length > 0) {
+			    // 	console.log(intersects[0].object.name);
+			    //     window.open("https://www.w3schools.com");
+			    // }
+
+			    // update the picking ray with the camera and mouse position
+				// raycaster.setFromCamera( mouse, camera );
+
+
+
+				// // calculate objects intersecting the picking ray
+				// var intersects = raycaster.intersectObjects( objects );
+
+				// if ( intersects.length > 0 ) {
+				// 	console.log(intersects[0]);
+				// }
+
+
+
+    			mouse_vector.set( mouse.x, mouse.y, mouse.z );
+				//the final step of the transformation process, basically this method call
+			    //creates a point in 3d space where the mouse click occurd
+			    projector.unprojectVector( mouse_vector, camera );
+			    
+			    var direction = mouse_vector.sub( camera.position ).normalize();
+			    
+			    //ray = new THREE.Raycaster( camera.position, direction );
+			    ray.set( camera.position, direction );
+			    
+			    //asking the raycaster if the mouse click touched the sphere object
+			    intersects = ray.intersectObject( btn );
+			 
+			    
+			    //does touch the sphere object 
+			    if( intersects.length ) { 
+			    	alert( "hit" ); 
+			    }
 			}
 
 			function onDocumentMouseUp( event ) {
@@ -183,18 +244,7 @@
 			function render() {
 				requestAnimationFrame( render );
 
-				// update the picking ray with the camera and mouse position
-				raycaster.setFromCamera( mouse, camera );
-
-				// calculate objects intersecting the picking ray
-				var intersects = raycaster.intersectObjects( scene.children[0].children );
-
-				for ( var i = 0; i < intersects.length; i++ ) {
-					if(intersects[ i ].object.name == "button"){
-						//console.log(intersects[ i ].object.name);
-						//window.open("https://www.w3schools.com","_self");
-					}
-				}
+				
 				
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.render( scene, camera );

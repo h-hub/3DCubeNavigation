@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>My first three.js app</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100%; background-color: white; }
+		</style>
+	</head>
+	<body>
+		<script src="js/three.js"></script>
+		<script src="js/threex.dynamictexture.js"></script>
+		<script>
+
+			container = document.createElement( 'div' );
+			document.body.appendChild( container );
+
+			var scene = new THREE.Scene();
+			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+			var renderer = new THREE.WebGLRenderer();
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			renderer.setClearColor (0xffffff, 1);
+			document.body.appendChild( renderer.domElement );
+
+			var theta = 0;
+			var radius = 0;
+
+			var geometry1 = new THREE.BoxGeometry( 3 ,3,3);
+			//var material = new THREE.MeshBasicMaterial( { color: 0xe0e0e0 } );
+		
+
+			var material2 = new THREE.MeshFaceMaterial([
+			    new THREE.MeshBasicMaterial({
+			        color: 0xDAF7A6
+			    }),
+			    new THREE.MeshBasicMaterial({
+			        color: 0xCCAFA9
+			    }),
+			    new THREE.MeshBasicMaterial({
+			        color: 0x0922AE,
+			    }),
+			    new THREE.MeshBasicMaterial({
+			        color: 0xCCAFA9
+			    }),
+			    new THREE.MeshBasicMaterial({
+			    	color: 0xCCAFA9
+			        
+			    }),
+			    new THREE.MeshBasicMaterial({
+					color: 0x953734
+				})
+			]);
+
+
+			var btn = new THREE.Mesh( geometry1, material2 );
+			btn.name = "button";
+
+			//btn.position.set (-1,-1.3,1.6);
+
+			
+
+			scene.add( btn );
+
+			
+
+			camera.position.z = 5;
+
+			
+
+			var raycaster = new THREE.Raycaster();
+			var mouse = new THREE.Vector2();
+
+			var mouseX = 0;
+        	var mouseY = 0;
+
+        	var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;
+
+			var light = new THREE.DirectionalLight( 0xffffff, 1 );
+				light.position.set( 1, 1, 1 ).normalize();
+				scene.add( light )
+
+			document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+
+
+			function onDocumentMouseDown( event ) {
+
+				event.preventDefault();
+
+				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+				document.addEventListener( 'mouseup', onDocumentMouseUp, false );
+				
+
+				// update the picking ray with the camera and mouse position
+				raycaster.setFromCamera( mouse, camera );
+
+				// calculate objects intersecting the picking ray
+				var intersects = raycaster.intersectObjects( scene.children );
+
+				for ( var i = 0; i < intersects.length; i++ ) {
+
+					//intersects[ i ].object.material.color.set( 0xff0000 );
+					 console.log("name-->"+intersects[ i ].object.children);
+					if(intersects[ i ].object.name == "button"){
+						// window.open("https://www.w3schools.com","_self");
+					}
+
+				}
+
+			}
+
+			function onDocumentMouseUp( event ) {
+
+				document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
+				document.removeEventListener( 'mouseup', onDocumentMouseUp, false );
+
+			}
+
+			function onDocumentMouseMove( event ) {
+			
+
+			}
+			
+			function toRadians(angle) {
+				return angle * (Math.PI / 180);
+			}
+
+		    function rotateScene(deltaX, deltaY) {
+			    scene.rotation.y += deltaX / 100;
+			    scene.rotation.x += deltaY / 100;
+			}
+
+			function render() {
+				
+
+				theta += 0.1;
+				camera.position.x = radius * Math.sin( THREE.Math.degToRad( theta ) );
+				camera.position.y = radius * Math.sin( THREE.Math.degToRad( theta ) );
+				camera.position.z = radius * Math.cos( THREE.Math.degToRad( theta ) );
+				camera.lookAt( scene.position );
+				camera.updateMatrixWorld();
+				
+				requestAnimationFrame( render );
+
+				// cube.rotation.x += 0.0125;
+				// cube.rotation.y += 0.0125;
+				renderer.render( scene, camera );
+			}
+			render();
+
+		</script>
+	</body>
+</html>
