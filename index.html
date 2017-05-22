@@ -1,253 +1,330 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 	<head>
-		<title>three.js canvas - geometry - cube</title>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<meta charset=utf-8>
+		<title>My first three.js app</title>
 		<style>
-			body {
-				font-family: Monospace;
-				background-color: #f0f0f0;
-				margin: 0px;
-				overflow: hidden;
-			}
+			body { margin: 0; }
+			canvas { width: 100%; height: 100%; background-color: white; }
 		</style>
+		<link href="css/bootstrap.css" rel="stylesheet" type="text/css"/>
 	</head>
 	<body>
 
+	<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        <h4 class="modal-title" id="exampleModalLabel">Neth3D</h4>
+	      </div>
+	      <div class="modal-body">
+	        <iframe id="video" width="100%" height="350" src="https://www.youtube.com/embed/xn3kMB8IJdk" frameborder="0" allowfullscreen></iframe>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+
+	<div class="row">
+		<div class="col-md-12">
+			<nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">Brand</a>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="#" onclick="showVideo();">Video <span class="sr-only">(current)</span></a></li>
+        <li><a href="#">Link</a></li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="#">Link</a></li>
+      </ul>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col-md-12" id="viewPort" style="height:400px">
+			
+		</div>
+	</div>
+
+
+		
+		<script src="js/jquery-3.2.1.min.js"></script>
+		<script src="js/bootstrap.js"></script>
 		<script src="js/three.js"></script>
-
-		<script src="js/renderers/Projector.js"></script>
-		<script src="js/renderers/CanvasRenderer.js"></script>
-
-		<script src="js/libs/stats.min.js"></script>
+		<script src="js/threex.dynamictexture.js"></script>
 
 		<script>
 
-			var container, stats;
+						/*
+			*    Simple Three.js Template 
+			*    @author mand http://mandemeskel.wordpress.com/
+			*/
 
-			var camera, scene, renderer;
 
-			var cube, plane;
+			var WIDTH = $('#viewPort').innerWidth(),
+			    HEIGHT = $('#viewPort').innerHeight(),
+			    ASPECT = WIDTH / HEIGHT,
+			    VIEW_ANGLE = 45, NEAR = 0.1, FAR = 10000;
 
-			var targetRotation = 0;
-			var targetRotationOnMouseDown = 0;
+			var contianer, renderer, camera, scene, sphere, cube;
+
+			THREE.ImageUtils.crossOrigin = '';
+
+			//mouse event variables
+			var projector = new THREE.Projector(), 
+			    mouse_vector = new THREE.Vector3(),
+			    mouse = { x: 0, y: 0, z: 1 },
+			    ray = new THREE.Raycaster( new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0) ),
+			    intersects = [],
+			    intersectsSphere = [];
 
 			var mouseX = 0;
-			var mouseXOnMouseDown = 0;
-
-			var windowHalfX = window.innerWidth / 2;
-			var windowHalfY = window.innerHeight / 2;
-
-			var previousMousePosition = {
-				    x: 0,
-				    y: 0
-				};
-
-			init();
-			animate();
+        	var mouseY = 0;
 
 			function init() {
+			    var directionalLight;
 
-				container = document.createElement( 'div' );
-				document.body.appendChild( container );
+			    //div element that will hold renderer
+			    container = document.createElement('div');
+			    document.body.appendChild(container);
 
-				var info = document.createElement( 'div' );
-				info.style.position = 'absolute';
-				info.style.top = '10px';
-				info.style.width = '100%';
-				info.style.textAlign = 'center';
-				info.innerHTML = 'Drag to spin the cube';
-				container.appendChild( info );
+			    //renderer
+			    renderer = new THREE.WebGLRenderer();
+			    renderer.setSize(WIDTH, HEIGHT);
+			    $('#viewPort').append(renderer.domElement);
 
-				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
-				camera.position.y = 150;
-				camera.position.z = 500;
+			    //camera
+			    camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
+			    camera.position.z = 300;
 
-				scene = new THREE.Scene();
-
-				// Cube
-
-				var geometry = new THREE.BoxGeometry( 200, 200, 200 );
-
-				for ( var i = 0; i < geometry.faces.length; i += 2 ) {
-
-					var hex = Math.random() * 0xffffff;
-					geometry.faces[ i ].color.setHex( hex );
-					geometry.faces[ i + 1 ].color.setHex( hex );
-
-				}
-
-				var material = new THREE.MeshBasicMaterial( { vertexColors: THREE.FaceColors, overdraw: 0.5 } );
-
-				cube = new THREE.Mesh( geometry, material );
-				cube.position.y = 150;
-				scene.add( cube );
-
-				// Plane
-
-				var geometry = new THREE.PlaneBufferGeometry( 200, 200 );
-				geometry.rotateX( - Math.PI / 2 );
-
-				var material = new THREE.MeshBasicMaterial( { color: 0xe0e0e0, overdraw: 0.5 } );
-
-				plane = new THREE.Mesh( geometry, material );
-				scene.add( plane );
-
-				renderer = new THREE.CanvasRenderer();
-				renderer.setClearColor( 0xf0f0f0 );
-				renderer.setPixelRatio( window.devicePixelRatio );
-				renderer.setSize( window.innerWidth, window.innerHeight );
-				container.appendChild( renderer.domElement );
-
-				stats = new Stats();
-				container.appendChild( stats.dom );
-
-				document.addEventListener( 'mousedown', onDocumentMouseDown, false );
-				document.addEventListener( 'touchstart', onDocumentTouchStart, false );
-				document.addEventListener( 'touchmove', onDocumentTouchMove, false );
-
-				//
-
-				window.addEventListener( 'resize', onWindowResize, false );
-
-				if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
-					alert('mobile');
-				}
+			    //lights
+			    directionalLight = new THREE.DirectionalLight(0xeff3ea, 1.2);
+			    directionalLight.position.set(0, -1, 0);
 
 
+			    //set up sphere object, just for testing
+			    var sphereMaterial = new THREE.MeshLambertMaterial({
+			        color: 0x004242
+			    });
+			    sphere = new THREE.Mesh(new THREE.SphereGeometry(10, 16, 16),
+			    sphereMaterial);
+			    sphere.name = "sphere";
+			    sphere.position.set (35,-50,2)
+
+			    var cubeMaterialBtn = new THREE.MeshFaceMaterial([
+				    new THREE.MeshBasicMaterial({
+				        // color: 0x3044423
+				        map: THREE.ImageUtils.loadTexture( 'image/readmore.png' )
+				    }),
+				    new THREE.MeshBasicMaterial({
+				        //color: 0x5e980f
+				         map: THREE.ImageUtils.loadTexture( 'image/readmore.png' )
+				    }),
+				    new THREE.MeshBasicMaterial({
+				        //color: 0x5e980f
+				         map: THREE.ImageUtils.loadTexture( 'image/readmore.png' )
+				    }),
+				    new THREE.MeshBasicMaterial({
+				        //color: 0x5e980f
+				         map: THREE.ImageUtils.loadTexture( 'image/readmore.png' )
+				    }),
+				    new THREE.MeshBasicMaterial({
+				        //color: 0x5e980f
+				         map: THREE.ImageUtils.loadTexture( 'image/readmore.png' )
+				    }),
+				    new THREE.MeshBasicMaterial({
+						//color: 0x5e980f,
+						 map: THREE.ImageUtils.loadTexture( 'image/readmore.png' )
+					})
+				]);
+				var geometryBtn = new THREE.BoxGeometry( 8, 10, 30 );				
+				Btn = new THREE.Mesh( geometryBtn, cubeMaterialBtn );
+				Btn.name = "btn";
+				Btn.position.set (74,-20,2)
+
+				var geometryBtn2 = new THREE.BoxGeometry( 8, 10, 30 );
+				Btn2 = new THREE.Mesh( geometryBtn, cubeMaterialBtn );
+				Btn2.name = "btn2";
+				Btn2.position.set (-74,-20,2)
+
+				var geometryBtn3 = new THREE.BoxGeometry( 30, 5, 10 );
+				Btn3 = new THREE.Mesh( geometryBtn3, cubeMaterialBtn );
+				Btn3.name = "btn3";
+				Btn3.position.set (0,-75,-35)
+
+
+			    var cubeMaterial = new THREE.MeshFaceMaterial([
+				    new THREE.MeshBasicMaterial({
+				        // color: 0x5e980f
+				        map: THREE.ImageUtils.loadTexture( 'image/about.png' )
+				    }),
+				    new THREE.MeshBasicMaterial({
+				        // color: 0x5e980f
+				        map: THREE.ImageUtils.loadTexture( 'image/neth3d.png' )
+				    }),
+				    new THREE.MeshBasicMaterial({
+				        // color: 0x5e980f
+				        map: THREE.ImageUtils.loadTexture( 'image/neth3d3.png' )
+				    }),
+				    new THREE.MeshBasicMaterial({
+				        // color: 0x5e980fmap: THREE.ImageUtils.loadTexture( 'image/mesh1.png' )
+				        map: THREE.ImageUtils.loadTexture( 'image/neth3dvideo.png' )
+				    }),
+				    new THREE.MeshBasicMaterial({
+				        // color: 0x5e980f
+				        map: THREE.ImageUtils.loadTexture( 'image/cameradevice.png' )
+				    }),
+				    new THREE.MeshBasicMaterial({
+						map: THREE.ImageUtils.loadTexture( 'image/neth3d.png' )
+					})
+				]);
+				var geometry = new THREE.BoxGeometry( 150,150,150 );
+				cube = new THREE.Mesh( geometry, cubeMaterial );
+				cube.name = "cube";
+
+			    //create the scene and add the objects that we created
+			    scene = new THREE.Scene();
+			    scene.add(camera);
+			    scene.add(directionalLight);
+			    cube.add(Btn);
+			    cube.add(Btn2);
+			    cube.add(Btn3);
+			    scene.add(cube);
+
+			    //sphere.position.set(cube.position.x,cube.position.y,100);
+
+			    //we add the even listener function to the domElement
+			    renderer.domElement.addEventListener( 'mousedown', onMouseDown );
+			    renderer.setClearColor (0xeff3ea, 1);
+
+			    console.log(cube.rotation.x +"-"+cube.rotation.y+"-"+cube.rotation.z);
+			    
+			    //cube.rotation.y = Math.PI / 2;
+			}
+
+			function animate() {
+
+			    requestAnimationFrame(animate);
+			    renderer.render(scene, camera);
 
 			}
 
-			function toRadians(angle) {
-				return angle * (Math.PI / 180);
-			}
+			//event listener
+			function onMouseDown( event_info ) {
+			    //stop any other event listener from recieving this event
+			    event_info.preventDefault();  
 
-			function onWindowResize() {
-
-				windowHalfX = window.innerWidth / 2;
-				windowHalfY = window.innerHeight / 2;
-
-				camera.aspect = window.innerWidth / window.innerHeight;
-				camera.updateProjectionMatrix();
-
-				renderer.setSize( window.innerWidth, window.innerHeight );
-
-			}
-
-			//
-
-			function onDocumentMouseDown( event ) {
-
-				event.preventDefault();
-
-				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+			    document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 				document.addEventListener( 'mouseup', onDocumentMouseUp, false );
-				document.addEventListener( 'mouseout', onDocumentMouseOut, false );
+			    
+			    console.log($('#viewPort').offset().top+ "-"+HEIGHT);
+			    //this where begin to transform the mouse cordinates to three,js cordinates
+			    mouse.x = ( event_info.clientX / WIDTH ) * 2 - 1;
+			    mouse.y = - ( event_info.clientY / (HEIGHT + $('#viewPort').offset().top +40)) * 2 + 1 ;
 
-				mouseXOnMouseDown = event.clientX - windowHalfX;
-				targetRotationOnMouseDown = targetRotation;
+			    mouseX = event.clientX;
+        		mouseY = event.clientY;
+			    
+			    //this vector caries the mouse click cordinates
+			    mouse_vector.set( mouse.x, mouse.y, mouse.z );
+			    
+			    //the final step of the transformation process, basically this method call
+			    //creates a point in 3d space where the mouse click occurd
+			    projector.unprojectVector( mouse_vector, camera );
+			    
+			    var direction = mouse_vector.sub( camera.position ).normalize();
+			    
+			    //ray = new THREE.Raycaster( camera.position, direction );
+			    ray.set( camera.position, direction );
+			    
+			    //asking the raycaster if the mouse click touched the sphere object
+			    intersects = ray.intersectObject(cube);
+			    intersectsBtn = ray.intersectObject(Btn3);
 
+			    //-----------------
+			    cube.updateMatrixWorld();
+			    var vector = new THREE.Vector3();
+				vector.setFromMatrixPosition( Btn.matrixWorld );
+			    console.log(vector);
+			    
+			    //the ray will return an array with length of 1 or greater if the mouse click
+			    //does touch the sphere object
+			    if( (vector.z > 0) && (intersectsBtn.length ) ) {
+			    	console.log( " perfect sphere hit" );
+			    	//window.open('www.google.com','_self');
+			    	$('#exampleModal').modal('show')
+			    }
+			    
+			}
+
+			function getDistance(mesh1, mesh2) {  
+			  var dx = mesh1.position.x - mesh2.position.x; 
+			  var dy = mesh1.position.y - mesh2.position.y; 
+			  var dz = mesh1.position.z - mesh2.position.z; 
+			  return Math.sqrt(dx*dx+dy*dy+dz*dz); 
 			}
 
 			function onDocumentMouseMove( event ) {
 
-				// mouseX = event.clientX - windowHalfX;
-
-				// targetRotation = targetRotationOnMouseDown + ( mouseX - mouseXOnMouseDown ) * 0.02;
-
-				// mouseY = event.clientY - windowHalfY;
-
-				// targetRotation = targetRotationOnMouseDown + ( mouseY - mouseYOnMouseDown ) * 0.02;
-				var deltaMove = {
-			        x: event.offsetX-previousMousePosition.x,
-			        y: event.offsetY-previousMousePosition.y
-			    };
-
-			            
-		        var deltaRotationQuaternion = new THREE.Quaternion()
-		            .setFromEuler(new THREE.Euler(
-		                toRadians(deltaMove.y * 1),
-		                toRadians(deltaMove.x * 1),
-		                0,
-		                'XYZ'
-		            ));
-		        
-		        cube.quaternion.multiplyQuaternions(deltaRotationQuaternion, cube.quaternion);
-			    
-			    
-			    previousMousePosition = {
-			        x: event.offsetX,
-			        y: event.offsetY
-			    };
-
+		        var deltaX = event.clientX - mouseX,
+	            deltaY = event.clientY - mouseY;
+		        mouseX = event.clientX;
+		        mouseY = event.clientY;
+		        rotateScene(deltaX, deltaY);
 			}
 
-			function onDocumentMouseUp( event ) {
-
-				document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
+			function onDocumentMouseUp( event_info ) {
+			    document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
 				document.removeEventListener( 'mouseup', onDocumentMouseUp, false );
-				document.removeEventListener( 'mouseout', onDocumentMouseOut, false );
-
+			    
 			}
 
-			function onDocumentMouseOut( event ) {
-
-				document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
-				document.removeEventListener( 'mouseup', onDocumentMouseUp, false );
-				document.removeEventListener( 'mouseout', onDocumentMouseOut, false );
-
+			function rotateScene(deltaX, deltaY) {
+			    cube.rotation.y += deltaX / 100;
+			    cube.rotation.x += deltaY / 100;
 			}
 
-			function onDocumentTouchStart( event ) {
-
-				if ( event.touches.length === 1 ) {
-
-					event.preventDefault();
-
-					mouseXOnMouseDown = event.touches[ 0 ].pageX - windowHalfX;
-					targetRotationOnMouseDown = targetRotation;
-
-				}
-
+			function showVideo(){
+				cube.rotation.x = - Math.PI / 2;
+				cube.rotation.y =  0;
 			}
 
-			function onDocumentTouchMove( event ) {
+			init();
+			animate();
 
-				if ( event.touches.length === 1 ) {
-
-					event.preventDefault();
-
-					mouseX = event.touches[ 0 ].pageX - windowHalfX;
-					targetRotation = targetRotationOnMouseDown + ( mouseX - mouseXOnMouseDown ) * 0.05;
-
-				}
-
-			}
-
-			//
-
-			function animate() {
-
-				requestAnimationFrame( animate );
-
-				stats.begin();
-				render();
-				stats.end();
-
-			}
-
-			function render() {
-
-				// cube.rotation.x += 0.025;
-				// cube.rotation.y += 0.025;
-
-				plane.rotation.y = cube.rotation.y += ( targetRotation - cube.rotation.y ) * 0.05;
-				renderer.render( scene, camera );
-
-			}
+			$(document).ready(function(){
+		    /* Get iframe src attribute value i.e. YouTube video url
+		    and store it in a variable */
+		    var url = $("#video").attr('src')+"?autoplay=1";
+		    
+		    /* Assign empty url value to the iframe src attribute when
+		    modal hide, which stop the video playing */
+		    $("#exampleModal").on('hide.bs.modal', function(){
+		        $("#video").attr('src', '');
+		    });
+		    
+		    /* Assign the initially stored url back to the iframe src
+		    attribute when modal is displayed again */
+		    $("#exampleModal").on('show.bs.modal', function(){
+		        $("#video").attr('src', url);
+		    });
+		});
 
 		</script>
-
 	</body>
 </html>
