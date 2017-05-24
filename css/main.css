@@ -1,0 +1,17 @@
+body{
+	background-color: #eff3ea;
+}
+.view{
+	/*background-color: brown;*/
+	/*#fafafa*/
+	width: 100%;
+	padding:0px;
+	margin:0px;
+}
+
+.content{
+	width: 100%;
+	padding:0px;
+	margin:0px;
+
+}

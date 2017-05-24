@@ -187,13 +187,14 @@
 				    $('#viewPort').on( 'touchstart', onDocumentTouchStart );
 					$('#viewPort').on( 'touchmove', onDocumentTouchMove );
 
-					cube.rotation.x = 0.4;
-					cube.rotation.y = 0.7;
+					// cube.rotation.x = 0.4;
+					// cube.rotation.y = 0.7;
 				}
 
 				function animate() {
 
 					requestAnimationFrame(animate);
+					TWEEN.update();
 					renderer.render(scene, camera);
 
 				}
@@ -275,7 +276,9 @@
 					deltaY = event.clientY - mouseY;
 					mouseX = event.clientX;
 					mouseY = event.clientY;
-					rotateScene(deltaX, deltaY);
+
+					rotateAroundWorldAxis(cube, new THREE.Vector3(0, 1, 0), deltaX/ 100);
+					rotateAroundWorldAxis(cube, new THREE.Vector3(1, 0, 0), deltaY/ 100);
 				}
 
 				function onDocumentMouseUp( event_info ) {
@@ -345,18 +348,36 @@
 						deltaY = event.touches[ 0 ].pageY - mouseY;
 						mouseX = event.touches[ 0 ].pageX;
 						mouseY = event.touches[ 0 ].pageY;
-						rotateScene(deltaX, deltaY);
+
+						rotateAroundWorldAxis(cube, new THREE.Vector3(0, 1, 0), deltaX/ 100);
+						rotateAroundWorldAxis(cube, new THREE.Vector3(1, 0, 0), deltaY/ 100);
+
 					}
 				}
 
-				function rotateScene(deltaX, deltaY) {
-					cube.rotation.y += deltaX / 100;
-					cube.rotation.x += deltaY / 100;
-				}
+				function rotateAroundWorldAxis( object, axis, radians ) {
+
+		              var rotationMatrix = new THREE.Matrix4();
+
+		              rotationMatrix.makeRotationAxis( axis.normalize(), radians );
+		              rotationMatrix.multiply( object.matrix );                       // pre-multiply
+		              object.matrix = rotationMatrix;
+		              object.rotation.setFromRotationMatrix( object.matrix );
+		          }
 
 				function showSide(x,y){
-					cube.rotation.x = x;
-					cube.rotation.y = y;
+
+					new TWEEN.Tween(cube.rotation)
+				        .delay(0)
+				        .to( {
+				                x: x,            
+				                y: y,
+				                z: 0            
+				            }, 1000 )
+				        .onComplete(function() {
+				                //setTimeout( tRotate, pause, obj, angles, delay, pause );
+				            })
+				        .start();
 				}
 
 				init();
