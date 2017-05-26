@@ -16,6 +16,12 @@
 				intersectsBtn = [],
 				objects = [];
 
+				var tweenHead = null;
+				var intervalFunction = null;
+				var rotating = false;
+				var loopbreak = false;
+				var mouseClicked = false;
+
 				var mouseX = 0;
 				var mouseY = 0;
 
@@ -177,8 +183,6 @@
 
 				    scene.add(cube);
 
-				    //sphere.position.set(cube.position.x,cube.position.y,100);
-
 				    //we add the even listener function to the domElement
 				    renderer.domElement.addEventListener( 'mousedown', onMouseDown );
 				    renderer.setClearColor (0xeff3ea, 1);window.addEventListener( 'resize', onWindowResize, false );
@@ -187,8 +191,9 @@
 				    $('#viewPort').on( 'touchstart', onDocumentTouchStart );
 					$('#viewPort').on( 'touchmove', onDocumentTouchMove );
 
-					// cube.rotation.x = 0.4;
-					// cube.rotation.y = 0.7;
+					console.log("init");
+
+					cubeAnimation();
 				}
 
 				function animate() {
@@ -261,6 +266,19 @@
                         $('#exampleModal').modal('show');
                     }
 
+                    console.log("mouse clicked function");
+                    
+
+                    mouseClicked = true;
+                    console.log("mouse clicked function-->"+mouseClicked);
+                    if(tweenHead){
+                    	
+                    	clearInterval(intervalFunction);
+                    	tweenHead.stop();
+                    }
+                    
+
+
 				}
 
 				function getDistance(mesh1, mesh2) {  
@@ -285,6 +303,11 @@
 					document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
 					document.removeEventListener( 'mouseup', onDocumentMouseUp, false );
 
+					mouseClicked = false;
+					if(tweenHead){
+						cubeAnimation();
+						rotating = false;
+					}
 				}
 
 				function onDocumentTouchStart( event ) {
@@ -367,6 +390,15 @@
 
 				function showSide(x,y){
 
+					if(tweenHead){						
+                    	tweenHead.stop();
+                    	rotating = false;						
+					}
+					clearInterval(intervalFunction);
+					cubeAnimation();
+					
+
+
 					new TWEEN.Tween(cube.rotation)
 				        .delay(0)
 				        .to( {
@@ -380,6 +412,77 @@
 				        .start();
 				}
 
+				function cubeAnimation(){
+
+					console.log("cubeAnimation");
+
+						console.log("mouse clicked--> "+mouseClicked);
+						console.log("intervalFunction apply interval->"+ rotating);
+						intervalFunction = setInterval(function(){
+							if(!mouseClicked){
+								if(!tweenHead){
+									tRotate();
+									rotating = true;
+								}else{
+									if(rotating){
+										console.log("tweenHead.stop();")
+										tweenHead.stop();
+										rotating = false;
+									}else{
+										console.log("tweenHead.start();")
+										tweenHead.start();
+										rotating = true;
+									}
+								}
+							}
+							
+							
+							console.log("set interval - rotating - >"+rotating);
+							 
+						}, 5000);					
+				}
+
+				function sleep(ms) {
+				  return new Promise(resolve => setTimeout(resolve, ms));
+				}
+
+				function tRotate() {
+
+					console.log("tRotate");
+
+					
+					
+					var update	= function(){
+						cube.rotation.x = cube.rotation.x + 0.01;
+						cube.rotation.y = cube.rotation.y + 0.01;
+					}
+					var current	= { x: cube.rotation.x , Y: cube.rotation.y };
+
+					// build the tween to go ahead
+					tweenHead	= new TWEEN.Tween(current)
+						// .to({x: +800}, 2500)
+						.delay(0)
+						// .easing('Elastic.EaseInOut')
+						.onUpdate(update);
+					// build the tween to go backward
+					var tweenBack	= new TWEEN.Tween(current)
+						// .to({x: -800}, 2500)
+						.delay(0)
+						// .easing('Elastic.EaseInOut')
+						.onUpdate(update);
+
+					// after tweenHead do tweenBack
+					tweenHead.chain(tweenBack);
+					// after tweenBack do tweenHead, so it is cycling
+					tweenBack.chain(tweenHead);
+
+					// start the first
+					tweenHead.start();
+
+
+					//setTimeout("tweenHead.stop();", 5000);
+				}
+				
 				init();
 				animate();
 
