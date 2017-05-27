@@ -55,7 +55,7 @@
 
 
 		<div class="container content">
-			<div class="col-lg-12 view" id="viewPort" style="height:70vh">
+			<div class="col-lg-12 view" id="viewPort" style="height:80vh">
 			</div>
 		</div>
 
@@ -65,7 +65,26 @@
 		<script src="js/threex.dynamictexture.js"></script>
 		<script src="js/Tween.js"></script>
 		<!-- <script src="js/TweenExample.js"></script> -->
+		<script type="x-shader/x-vertex" id="vertexShader">
+			varying vec3 vWorldPosition;
+			void main() {
+				vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
+				vWorldPosition = worldPosition.xyz;
+				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+			}
+		</script>
 
+		<script type="x-shader/x-fragment" id="fragmentShader">
+			uniform vec3 topColor;
+			uniform vec3 bottomColor;
+			uniform float offset;
+			uniform float exponent;
+			varying vec3 vWorldPosition;
+			void main() {
+				float h = normalize( vWorldPosition + offset ).y;
+				gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
+			}
+		</script>
 		<script src="cubejs/main.js"></script>
 
 	</body>

@@ -189,6 +189,7 @@
 
 				    window.addEventListener( 'resize', onWindowResize, false );
 				    $('#viewPort').on( 'touchstart', onDocumentTouchStart );
+				    $('#viewPort').on( 'touchend', onDocumentTouchStop );
 					$('#viewPort').on( 'touchmove', onDocumentTouchMove );
 
 					console.log("init");
@@ -224,8 +225,8 @@
                     mouse.x  = ( event_info.clientX / WIDTH ) * 2 - 1;
                     mouse.y = -((event_info.clientY - $('#viewPort').position().top) / $('#viewPort').height()) * 2 + 1;
 
-				    mouseX = event.clientX;
-				    mouseY = event.clientY;
+				    mouseX = event_info.clientX;
+				    mouseY = event_info.clientY;
 				    
 				    //this vector caries the mouse click cordinates
 				    mouse_vector.set( mouse.x, mouse.y, mouse.z );
@@ -302,12 +303,13 @@
 				function onDocumentMouseUp( event_info ) {
 					document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
 					document.removeEventListener( 'mouseup', onDocumentMouseUp, false );
-
+					clearInterval(intervalFunction);
 					mouseClicked = false;
-					if(tweenHead){
+					//if(tweenHead){
 						cubeAnimation();
 						rotating = false;
-					}
+					//}
+					console.log("mouse clicked--> "+mouseClicked);
 				}
 
 				function onDocumentTouchStart( event ) {
@@ -358,9 +360,35 @@
 	                    intersectsBtn = ray.intersectObject(Btn3);
 	                    vector.setFromMatrixPosition( Btn3.matrixWorld );
 	                    if( (vector.z > 0) && (intersectsBtn.length ) ) {
+
 	                        $('#exampleModal').modal('show');
-                    }
+
+	                        if(tweenHead){						
+		                    	tweenHead.stop();
+		                    	rotating = false;						
+							}
+							clearInterval(intervalFunction);
+							cubeAnimation();
+                    	}
+
+                    	mouseClicked = true;
+	                    console.log("mouse clicked function-->"+mouseClicked);
+	                    if(tweenHead){
+	                    	clearInterval(intervalFunction);
+	                    	tweenHead.stop();
+	                    }
 					}
+				}
+
+				function onDocumentTouchStop(event){
+					event.preventDefault();
+
+					clearInterval(intervalFunction);
+					mouseClicked = false;
+					//if(tweenHead){
+						cubeAnimation();
+						rotating = false;
+					//}
 				}
 
 				function onDocumentTouchMove( event ) {
@@ -453,7 +481,6 @@
 					
 					
 					var update	= function(){
-						cube.rotation.x = cube.rotation.x + 0.01;
 						cube.rotation.y = cube.rotation.y + 0.01;
 					}
 					var current	= { x: cube.rotation.x , Y: cube.rotation.y };
@@ -482,7 +509,7 @@
 
 					//setTimeout("tweenHead.stop();", 5000);
 				}
-				
+
 				init();
 				animate();
 
